@@ -1,101 +1,40 @@
-<img src="common/src/main/resources/sodium-icon.png" width="128">
+# Sodium, but Linux — renderer prototype
 
-# Sodium
+A clean Linux-native rendering experiment inspired by the performance goals of [Sodium](https://github.com/CaffeineMC/sodium). The long-term idea is to investigate whether useful rendering techniques can be adapted for a Linux desktop compositor.
 
-Sodium is a powerful rendering engine and optimization mod for the Minecraft client which improves frame rates and reduces
-micro-stutter, while fixing many graphical issues in Minecraft.
+**Status: early prototype. This is not a desktop compositor and it does not replace GNOME/Mutter.** The current demo opens an SDL2/OpenGL window and draws a triangle, proving the native graphics toolchain works before attempting compositor integration.
 
-**This mod is the result of thousands of hours of development, and is made possible thanks to players like you.** If you
-would like to show a token of your appreciation for my work, and help support the development of Sodium in the process,
-then consider [buying me a coffee](https://caffeinemc.net/donate).
+## What is here
 
-<a href="https://caffeinemc.net/donate"><img src="https://storage.ko-fi.com/cdn/kofi2.png?v=3" width="180"/></a>
+- `renderer-prototype/` — small, independent C++/SDL2/OpenGL proof of concept.
+- `docs/renderer-roadmap.md` — staged plan for researching a real desktop-rendering integration.
+- `UPSTREAM_NOTICES.md` — provenance and licensing notes for the original Sodium project.
 
----
+The `linux-renderer-prototype` branch intentionally removes the Minecraft mod build, Fabric/NeoForge adapters, game assets, and mod-specific tests from its working tree. The original `dev` branch is left untouched as a reference snapshot.
 
-### 📥 Downloads
+## Build on Ubuntu
 
-#### Stable builds
+Install the native dependencies:
 
-The latest stable release of Sodium can be downloaded from our official [Modrinth](https://modrinth.com/mod/sodium) and
-[CurseForge](https://www.curseforge.com/minecraft/mc-mods/sodium) pages.
+```sh
+sudo apt update
+sudo apt install build-essential cmake libsdl2-dev libgl-dev
+```
 
-#### Nightly builds (for developers)
+Build and run:
 
-We also provide bleeding-edge builds ("nightlies") which are useful for testing the very latest changes before they're
-packaged into a release. These builds are primarily intended for other mod developers and users with expert skills, and do
-not come with any support or warranty.
+```sh
+cmake -S renderer-prototype -B build
+cmake --build build -j"$(nproc)"
+./build/sodium-linux-demo
+```
 
-For a complete listing of available nightly builds, please see [the wiki page](https://github.com/CaffeineMC/sodium/wiki/Nightly-Builds). We also have a Maven repository for including Sodium in your development workspace or build process, for which you can also find [documentation on our wiki](https://github.com/CaffeineMC/sodium/wiki/CaffeineMC-Maven-&-Config-API).
+On Wayland, SDL2 will normally use the available Wayland backend; if that is unavailable, it may use X11/XWayland.
 
-### 🖥️ Installation
+## The actual goal
 
-Since the release of Sodium 0.6.0, both the _Fabric_ and _NeoForge_ mod loaders are supported. We generally recommend
-that new users prefer to use the _Fabric_ mod loader, since it is more lightweight and stable (for the time being.)
+A desktop compositor must handle much more than drawing a scene: client surfaces, damage tracking, buffer lifetimes, input, frame scheduling, scaling, color management, multi-monitor layouts, and synchronization. GNOME's compositor is Mutter, so the realistic path is to prototype and benchmark rendering ideas independently, then study a well-defined Mutter integration point. Swapping Mutter's renderer wholesale is not a drop-in change.
 
-For more information about downloading and installing the mod, please refer to our [Installation Guide](https://github.com/CaffeineMC/sodium/wiki/Installation).
+## Upstream and licensing
 
-### 🙇 Getting Help
-
-For technical support (including help with mod installation problems and game crashes), please use our
-[official Discord server](https://caffeinemc.net/discord).
-
-### 📬 Reporting Issues
-
-If you do not need technical support and would like to report an issue (bug, crash, etc.) or otherwise request changes
-(for mod compatibility, new features, etc.), then we encourage you to open an issue on the
-[project issue tracker](https://github.com/CaffeineMC/sodium/issues).
-
-Please note that while the issue tracker is open to feature requests, development is primarily focused on
-improving compatibility, performance, and finishing any unimplemented features necessary for parity with
-the vanilla renderer.
-
-### 💬 Join the Community
-
-We have an [official Discord community](https://caffeinemc.net/discord) for all of our projects. By joining, you can:
-- Get installation help and technical support for all of our mods
-- Get the latest updates about development and community events
-- Talk with and collaborate with the rest of our team
-- ... and just hang out with the rest of our community.
-
-## ✅ Hardware Compatibility
-
-We only provide official support for graphics cards which have up-to-date drivers that are compatible with OpenGL 4.5
-or newer. Most graphics cards released in the past 12 years will meet these requirements, including the following:
-
-- AMD Radeon HD 7000 Series (GCN 1) or newer
-- NVIDIA GeForce 400 Series (Fermi) or newer
-- Intel HD Graphics 500 Series (Skylake) or newer
-
-Nearly all graphics cards that are already compatible with Minecraft (which requires OpenGL 3.3) should also work
-with Sodium. But our team cannot ensure compatibility or provide support for older graphics cards, and they may
-not work with future versions of Sodium.
-
-#### OpenGL Compatibility Layers
-
-Devices which need to use OpenGL translation layers (such as GL4ES, ANGLE, etc.) are not supported and will very likely
-not work with Sodium. These translation layers do not implement required functionality, and they suffer from underlying
-driver bugs which cannot be worked around.
-
-## 🛠️ Building from sources
-
-Sodium uses the [Gradle build tool](https://gradle.org/) and can be built with the `gradle build` command. The build
-artifacts (production binaries and their source bundles) can be found in the `build/mods` directory.
-
-The [Gradle wrapper](https://docs.gradle.org/current/userguide/gradle_wrapper.html#sec:using_wrapper) is provided for ease of use and will automatically download and install the
-appropriate version of Gradle for the project build. To use the Gradle wrapper, substitute `gradle` in build commands
-with `./gradlew.bat` (Windows) or `./gradlew` (macOS and Linux).
-
-### Build Requirements
-
-- OpenJDK 21
-    - We recommend using the [Eclipse Temurin](https://adoptium.net/) distribution as it's regularly tested by our developers and known
-      to be of high quality.
-- Gradle 8.10.x
-    - Typically, newer versions of Gradle will work without issues, but the build script is only tested against the
-      version used by the [wrapper script](/gradle/wrapper/gradle-wrapper.properties).
-
-## 📜 License
-
-Except where otherwise stated (see [third-party license notices](thirdparty/NOTICE.txt)), the content of this repository is provided
-under the [Polyform Shield 1.0.0](LICENSE.md) license by [JellySquid](https://jellysquid.me).
+Sodium is developed by CaffeineMC: https://github.com/CaffeineMC/sodium. This prototype does **not** copy Sodium renderer source code yet. Sodium's repository uses the PolyForm Shield 1.0.0 license for most project content, with separate third-party notices; read `UPSTREAM_NOTICES.md` before attempting to reuse any upstream code. This repository is an unofficial experiment and is not affiliated with CaffeineMC or GNOME.
